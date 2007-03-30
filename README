@@ -1,0 +1,17 @@
+Squirrel
+======
+
+SQL Simplification Plugin for ActiveRecord
+
+This plugin extends the ActiveRecord::Base#find method to be able to
+take a block of Ruby which will get parsed into a nice SQL string
+and have its results returned.
+
+Author::     Jon Yurek (mailto:jyurek@thoughtbot.com)
+Copyright::  Copyright(c) 2006 thoughtbot, inc.
+License::    Distributes under the same terms as Ruby
+
+Squirrel is a plugin for ActiveRecord which attempts to make SQL
+querier a much more natural prospect. You can write your queries
+in Ruby code and they get translated, including all proper table
+joins, into relevant SQL code and executed, returning your results.
