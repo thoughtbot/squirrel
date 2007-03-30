@@ -137,15 +137,17 @@ class SquirrelTest < Test::Unit::TestCase
 	def test_does_not_include_paginator_on_non_paged_queries
 	  assert posts = Post.find(:all) { id <=> (1..6) }
 	  assert_raises(NoMethodError){ posts.pages }
+	  assert_raises(NoMethodError){ posts.total_results }
   end
 	
 	def test_does_include_paginator_on_paged_queries
-	  assert posts = Post.find(:all) { id <=> (1..6); page 1, 4 }
+	  assert posts = Post.find(:all) { id <=> (1..6); paginate :page => 2, :per_page => 4 }
 	  assert_not_nil posts.pages
+	  assert_not_nil posts.total_results
 	end
 	
 	def test_pages_are_sane
-	  assert posts = Post.find(:all) { id <=> (1..6); page 2, 4 }
+	  assert posts = Post.find(:all) { id <=> (1..6); paginate :page => 2, :per_page => 4 }
 	  assert_not_nil       posts.pages
 	  assert_equal 2,      posts.pages.last
 	  assert_equal 2,      posts.pages.current
@@ -155,7 +157,7 @@ class SquirrelTest < Test::Unit::TestCase
 	  assert_equal 1,      posts.pages.previous
 	  assert_equal (5..6), posts.pages.current_range
 	  
-	  assert posts = Post.find(:all) { id <=> (1..6); page 1, 4 }
+	  assert posts = Post.find(:all) { id <=> (1..6); paginate :page => 1, :per_page => 4 }
 	  assert_not_nil       posts.pages
 	  assert_equal 2,      posts.pages.last
 	  assert_equal 1,      posts.pages.current

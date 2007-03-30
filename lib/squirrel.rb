@@ -152,9 +152,10 @@ module Thoughtbot
 					@order.blank? ? nil : @order.collect{|col| col.full_name + (col.negative? ? " DESC" : "") }.join(", ")
 			  end
 				
-				def page number, per_page = 20
+				def paginate opts = {}
 				  @paginator = true
-				  limit(per_page, (number.to_i - 1) * per_page.to_i)
+				  opts = { :page => 1, :per_page => 20 }.merge(opts)
+				  limit( opts[:per_page], ( opts[:page].to_i - 1 ) * opts[:per_page].to_i )
 			  end
 			  
 			  def limit lim, off = nil
