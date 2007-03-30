@@ -154,8 +154,9 @@ module Thoughtbot
 				
 				def paginate opts = {}
 				  @paginator = true
-				  opts = { :page => 1, :per_page => 20 }.merge(opts)
-				  limit( opts[:per_page], ( opts[:page].to_i - 1 ) * opts[:per_page].to_i )
+				  page     = opts[:page].to_i     || 1
+				  per_page = opts[:per_page].to_i || 20
+				  limit( per_page, ( page - 1 ) * per_page )
 			  end
 			  
 			  def limit lim, off = nil
