@@ -12,7 +12,7 @@ module Thoughtbot
       def initialize opts={}
         @total_results = opts[:count].to_i
         @limit         = opts[:limit].to_i
-        @offset        = opts[:offset].to_i + 1
+        @offset        = opts[:offset].to_i
         
         @per_page      = @limit
         @current       = (@offset / @limit) + 1
@@ -20,7 +20,7 @@ module Thoughtbot
         @last          = ((@total_results-1) / @limit) + 1
         @next          = @current + 1 if @current < @last
         @previous      = @current - 1 if @current > 1
-        @current_range = (@offset..([@offset+@limit-1, @total_results].min))
+        @current_range = ((@offset+1)..([@offset+@limit, @total_results].min))
         
         (@first..@last).each do |page|
           self[page-1] = Page.new((page-1) * @per_page, @per_page, page, @per_page)

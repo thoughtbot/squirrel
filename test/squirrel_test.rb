@@ -146,6 +146,22 @@ class SquirrelTest < Test::Unit::TestCase
 	  assert_not_nil posts.total_results
 	end
 	
+	def test_paginator_low_edge_cases
+	  pages = Thoughtbot::Squirrel::Paginator.new(:count => 100, :offset => 0, :limit => 1)
+	  assert_equal 100,    pages.last
+	  assert_equal 1,      pages.current
+	  assert_equal 1,      pages.first
+	  assert_equal (1..1), pages.current_range
+	end
+	
+	def test_paginator_high_edge_cases
+	  pages = Thoughtbot::Squirrel::Paginator.new(:count => 100, :offset => 99, :limit => 1)
+	  assert_equal 100,        pages.last
+	  assert_equal 100,        pages.current
+	  assert_equal 1,          pages.first
+	  assert_equal (100..100), pages.current_range
+  end
+	
 	def test_pages_are_sane
 	  assert posts = Post.find(:all) { id <=> (1..6); paginate :page => 2, :per_page => 4 }
 	  assert_not_nil       posts.pages
