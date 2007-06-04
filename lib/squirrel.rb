@@ -8,7 +8,7 @@ module Thoughtbot
 					alias_method :pre_squirrel_find, :find
 					def find *args, &blk
 				    args ||= [:all]
-						if blk
+						if blk || (args.last.is_a?(Hash) && args.last.has_key?(:paginate))
 							query = Query.new(self, &blk)
 							query.execute(*args)
 						else
@@ -25,7 +25,7 @@ module Thoughtbot
 			def initialize model, &blk
 				@model = model
 				@joins = nil
-				@conditions = ConditionBlock.new(@model, "AND", blk.binding, :base, &blk)
+				@conditions = ConditionBlock.new(@model, "AND", blk ? blk.binding : nil, :base, &blk)
 				hand_out_join_associations
 			end
 			
@@ -41,21 +41,27 @@ module Thoughtbot
 				if args.first == :query
 					self
 				else
-					results = model.find args[0], (args[1] || {}).merge(@conditions.to_params)
-					if @conditions.paginate?
-            count_conditions = @conditions.to_params
-            limit  = count_conditions.delete(:limit)
-            offset = count_conditions.delete(:offset)
+				  opts = args.last.is_a?(Hash) ? args.last : {}
+				  results = []
+				  pagination = opts.delete(:paginate) || {}
+				  model.send(:with_scope, :find => opts) do
+				    @conditions.paginate(pagination) unless pagination.empty?
+            results = model.find args[0], @conditions.to_params
+            if @conditions.paginate?
+              count_conditions = @conditions.to_params
+              limit  = count_conditions.delete(:limit)
+              offset = count_conditions.delete(:offset)
 
-					  class << results
-					    attr_reader :pages
-					    attr_reader :total_results
-				    end
+              class << results
+                attr_reader :pages
+                attr_reader :total_results
+              end
 
-            total_results = model.count(count_conditions)
-				    results.instance_variable_set("@pages", Paginator.new( :count => total_results, :limit => limit, :offset => offset) )
-				    results.instance_variable_set("@total_results", total_results)
-				  end
+              total_results = model.count(count_conditions)
+              results.instance_variable_set("@pages", Paginator.new( :count => total_results, :limit => limit, :offset => offset) )
+              results.instance_variable_set("@total_results", total_results)
+            end
+          end
 				  results
 				end
 			end

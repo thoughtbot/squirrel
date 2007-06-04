@@ -124,10 +124,6 @@ class SquirrelTest < Test::Unit::TestCase
 		posts = Post.find(:all, :limit => 3) { id <=> (1..6) }
 		assert_equal 3, posts.length
 		
-		# Select 6, attempt to pass conditions, but get them overwritten by block
-		posts = Post.find(:all, :conditions => "id = 1") { id <=> (1..6) }
-		assert_equal 6, posts.length
-		
 		# Make sure the original find still works.
 		posts = Post.find(:all, :conditions => "id = 2")
 		assert_equal 1, posts.length
@@ -182,6 +178,20 @@ class SquirrelTest < Test::Unit::TestCase
 	  assert_equal 2,      posts.pages.next
 	  assert_nil           posts.pages.previous
 	  assert_equal (1..4), posts.pages.current_range
+  end
+  
+  def test_passing_extra_conditions
+    assert posts = Post.find(:all, :conditions => "id = 3"){ id <=> (1..6) }
+    assert_equal [3],  posts.map{|p| p.id }
+  end
+  
+  def test_pagination_through_hash_parameter
+    posts = Post.find(:all, :paginate => {:page => 2, :per_page => 2})
+    assert_equal 2, posts.size
+    assert_not_nil  posts.pages
+    assert_equal 1, posts.pages.first
+    assert_equal 3, posts.pages.last
+    assert_equal 3, posts.first.id  
   end
 	
 	def test_has_one_relationships
