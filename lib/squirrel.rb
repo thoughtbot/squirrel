@@ -155,7 +155,7 @@ module Thoughtbot
 				end
 				
 				def order_clause
-					@order.blank? ? nil : @order.collect{|col| col.full_name + (col.negative? ? " DESC" : "") }.join(", ")
+          @order.blank? ? nil : @order.collect{|col| col.respond_to?(:full_name) ? (col.full_name + (col.negative? ? " DESC" : "")) : col }.join(", ")
 			  end
 				
 				def paginate opts = {}
