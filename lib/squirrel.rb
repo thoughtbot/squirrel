@@ -260,7 +260,13 @@ module Thoughtbot
 					@operator = :contains
 					@operand = val
 					self
-				end
+        end
+
+        def nil? val
+          @operator = :==
+          @operand = nil
+          self
+        end
 				
 				def -@
 					@negative = !@negative
