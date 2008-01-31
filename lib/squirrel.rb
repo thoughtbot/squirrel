@@ -162,6 +162,7 @@ module Thoughtbot
 				  @paginator = true
 				  page     = (opts[:page]     || 1).to_i
 				  per_page = (opts[:per_page] || 20).to_i
+				  page     = 1 if page < 1
 				  limit( per_page, ( page - 1 ) * per_page )
 			  end
 			  
