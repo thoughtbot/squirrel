@@ -5,16 +5,17 @@ module Thoughtbot
 		module ActiveRecordHook # :nodoc:
 			def self.included base
 				class << base
-					alias_method :pre_squirrel_find, :find
-					def find *args, &blk
+					def find_with_squirrel *args, &blk
 				    args ||= [:all]
 						if blk || (args.last.is_a?(Hash) && args.last.has_key?(:paginate))
 							query = Query.new(self, &blk)
 							query.execute(*args)
 						else
-							pre_squirrel_find(*args)
+							find_without_squirrel(*args)
 						end
 					end
+					alias_method :find_without_squirrel, :find
+					alias_method :find, :find_with_squirrel
 				end
 			end
 		end
