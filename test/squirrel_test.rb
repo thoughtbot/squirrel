@@ -67,7 +67,7 @@ class SquirrelTest < Test::Unit::TestCase
 			["addresses.id < ?", 4],
 			["addresses.id BETWEEN ? AND ?", 1, 3]
 		].each_with_index do |ary, i|
-			assert_equal conditions[i].to_sql, ary
+			assert_equal conditions[i].to_find_conditions, ary
 		end
 	end
 	
@@ -86,33 +86,51 @@ class SquirrelTest < Test::Unit::TestCase
 				id == 3
 			}
 		end
-		assert_equal ["((tags.id = ? OR tags.id = ? OR (tags.name = ? AND tags.name = ?)) AND (tags.name = ? OR tags.id = ?))", 1, 2, "Stuff", "Rails", "Things", 3],
-		             query.conditions.to_sql
+		assert_equal ["((tags.id = ? OR tags.id = ? OR (tags.name = ? AND tags.name = ?))" +
+                  " AND (tags.name = ? OR tags.id = ?))",
+                  1,
+                  2,
+                  "Stuff",
+                  "Rails",
+                  "Things",
+                  3],
+		             query.conditions.to_find_conditions
 	end
 	
-	def test_negation
+	def test_negation_by_not
+		query = Company.find(:query) do
+			any.not { id == 1; id == 2 }
+			id.not == 3
+		end
+		assert_equal ["(NOT (companies.id = ?) AND NOT (companies.id = ? OR companies.id = ?))", 3, 1, 2],
+                 query.conditions.to_find_conditions
+	end
+
+	def test_negation_by_minus
 		query = Company.find(:query) do
 			-any { id == 1; id == 2 }
 			-id == 3
 		end
-		assert_equal ["(NOT (companies.id = ?) AND NOT (companies.id = ? OR companies.id = ?))", 3, 1, 2], query.conditions.to_sql
+		assert_equal ["(NOT (companies.id = ?) AND NOT (companies.id = ? OR companies.id = ?))", 3, 1, 2],
+                 query.conditions.to_find_conditions
 	end
 	
 	def test_ordering
 		query = Address.find(:query) { order_by id }
-		assert_equal "addresses.id", query.conditions.order_clause
+		assert_equal "addresses.id", query.conditions.to_find_order
 		
 		query = Address.find(:query) { order_by -id }
-		assert_equal "addresses.id DESC", query.conditions.order_clause
+		assert_equal "addresses.id DESC", query.conditions.to_find_order
 		
 		query = Address.find(:query) { order_by state, -id }
-		assert_equal "addresses.state, addresses.id DESC", query.conditions.order_clause
+		assert_equal "addresses.state, addresses.id DESC", query.conditions.to_find_order
 		
-		query = Address.find(:query) { order_by -state, id, -address, company.name }
-		assert_equal "addresses.state DESC, addresses.id, addresses.address DESC, companies.name", query.conditions.order_clause
+		query = Address.find(:query) { order_by -state, id, address.desc, company.name }
+		assert_equal "addresses.state DESC, addresses.id, addresses.address DESC, companies.name", 
+                 query.conditions.to_find_order
 		
 		query = Address.find(:query) { id == 1 }
-		assert_equal nil, query.conditions.order_clause
+		assert_equal nil, query.conditions.to_find_order
 	end
 	
 	def test_extra_parameters
@@ -143,7 +161,7 @@ class SquirrelTest < Test::Unit::TestCase
 	end
 	
 	def test_paginator_low_edge_cases
-	  pages = Thoughtbot::Squirrel::Paginator.new(:count => 100, :offset => 0, :limit => 1)
+	  pages = Squirrel::Paginator.new(:count => 100, :offset => 0, :limit => 1)
 	  assert_equal 100,    pages.last
 	  assert_equal 1,      pages.current
 	  assert_equal 1,      pages.first
@@ -151,7 +169,7 @@ class SquirrelTest < Test::Unit::TestCase
 	end
 	
 	def test_paginator_high_edge_cases
-	  pages = Thoughtbot::Squirrel::Paginator.new(:count => 100, :offset => 99, :limit => 1)
+	  pages = Squirrel::Paginator.new(:count => 100, :offset => 99, :limit => 1)
 	  assert_equal 100,        pages.last
 	  assert_equal 100,        pages.current
 	  assert_equal 1,          pages.first
@@ -194,21 +212,25 @@ class SquirrelTest < Test::Unit::TestCase
     assert_equal 3, posts.first.id  
   end
 	
-	def test_has_one_relationships
-	end
-	
-	def test_belongs_to_relationships
-	end
-	
-	def test_has_many_relationships
-	end
-	
-	def test_has_many_though_relationships
-	end
-	
-	def test_has_and_belongs_to_many_relationships
-	end
-	
-	def test_polymorphic_relationships
+	def test_relationships
+    query = User.find(:query) do
+      id == 1
+      company.id == 2
+      posts.id == 3
+      company.addresses.id == 4
+      company.users.id == 5
+      posts.user.id == 6
+    end
+    assert_equal( {:company => {:addresses => {}, :users => {}}, :posts => {:user => {}}}, query.to_find_include )
+    assert_equal(["(users.id = ? AND (companies.id = ?) AND (posts.id = ?)" + 
+                  " AND ((addresses.id = ?)) AND ((users_companies.id = ?))" + 
+                  " AND ((users_posts.id = ?)))",
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6],
+                 query.to_find_conditions)
 	end
 end
