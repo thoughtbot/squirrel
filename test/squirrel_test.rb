@@ -197,6 +197,23 @@ class SquirrelTest < Test::Unit::TestCase
 	  assert_nil           posts.pages.previous
 	  assert_equal (1..4), posts.pages.current_range
   end
+
+  def test_will_paginator_works_like_squirrel_paginator
+	  assert posts = Post.find(:all) { id <=> (1..6); paginate :page => 2, :per_page => 4 }
+    [ :next_page,
+      :offset,
+      :out_of_bounds?,
+      :page_count,
+      :previous_page, 
+      :replace, 
+      :total_entries= ].each do |m|
+      assert posts.respond_to?(m)
+    end
+
+    assert_equal posts.pages.next,     posts.next_page
+    assert_equal posts.pages.previous, posts.previous_page
+    assert_equal posts.total_results,  posts.total_entries
+  end
   
   def test_passing_extra_conditions
     assert posts = Post.find(:all, :conditions => "id = 3"){ id <=> (1..6) }

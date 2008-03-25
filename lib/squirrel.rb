@@ -119,6 +119,7 @@ module Squirrel
                                                :limit => limit, 
                                                :offset => offset) )
       set.instance_variable_set("@total_results", total_results)
+      set.extend( Squirrel::WillPagination )
     end
     
     # ConditionGroups are groups of Conditions, oddly enough. They most closely map to models

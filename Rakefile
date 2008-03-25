@@ -20,6 +20,11 @@ Rake::TestTask.new(:test) do |t|
   t.verbose = true
 end
 
+desc "Clean the docs directory"
+task :clean_docs do
+  `rm -rf doc/`
+end
+
 desc 'Generate documentation for the squirrel plugin.'
 Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_dir = 'doc'
@@ -28,3 +33,9 @@ Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_files.include('README')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
+
+desc 'Update documentation on website'
+task :sync_docs => [:clean_docs, :rdoc] do
+  `rsync -ave ssh doc/ dev@dev.thoughtbot.com:/home/dev/www/dev.thoughtbot.com/squirrel`
+end
+
