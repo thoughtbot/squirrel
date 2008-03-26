@@ -18,9 +18,11 @@ module Squirrel
     end
 
     def self.included base
-      base.class_eval do
-        alias_method :find_without_squirrel, :find
-        alias_method :find, :find_with_squirrel
+      unless base.instance_methods.include? 'find_without_squirrel'
+        base.class_eval do
+          alias_method :find_without_squirrel, :find
+          alias_method :find, :find_with_squirrel
+        end
       end
     end
   end
