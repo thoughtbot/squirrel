@@ -28,3 +28,8 @@ sixth:
   title: Yes! Blah!
   body: Blah for sure.
   user_id: 3
+seventh:
+  id: 7
+  title: Ruby fills me with joy.
+  body: Really, Ruby is just fantastic.
+  user_id: 2

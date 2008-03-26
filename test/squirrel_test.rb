@@ -31,15 +31,16 @@ class SquirrelTest < Test::Unit::TestCase
   def test_simple_operators
 		# Sanity Check
 		posts = Post.find(:all)
-		assert_equal 6, posts.length
+		assert_equal 7, posts.length
     assert_equal 1, posts.first.id
 		
     posts = Post.find(:all) { id == 1 }
 		assert_equal 1, posts.length
-    assert_equal 1, posts.first.id
+    assert posts.all?{|p| p.id == 1 }
 
     posts = Post.find(:all) { -id == 1 }
-    assert_equal [2, 3, 4, 5, 6], posts.collect{|p| p.id }.sort
+    assert ! posts.empty?
+    assert ! posts.any?{|p| p.id == 1 }
 
     posts = Post.find(:all) { title =~ "%Rails%" }
     assert_equal 2, posts.length
@@ -225,7 +226,7 @@ class SquirrelTest < Test::Unit::TestCase
     assert_equal 2, posts.size
     assert_not_nil  posts.pages
     assert_equal 1, posts.pages.first
-    assert_equal 3, posts.pages.last
+    assert_equal 4, posts.pages.last
     assert_equal 3, posts.first.id  
   end
 	
@@ -250,4 +251,25 @@ class SquirrelTest < Test::Unit::TestCase
                   6],
                  query.to_find_conditions)
 	end
+
+  def test_has_many_proxy_associations
+    user = User.find(2)
+    query = user.posts.find(:query){ body.contains? "Rails" }
+    assert_equal ["(posts.body LIKE ?)", "%Rails%"], query.to_find_conditions
+    assert_equal( {}, query.to_find_include )
+
+    assert_equal [Post.find(2), Post.find(5)], query.execute(:all)
+  end
+
+  def test_joins_inside_proxy_associations
+    user = User.find(2)
+    query = user.posts.find(:query){
+      body.contains? "Ruby"
+      tags.name == "Nothing"
+    }
+    assert_equal ["(posts.body LIKE ? AND (tags.name = ?))", "%Ruby%", "Nothing"], query.to_find_conditions
+    assert_equal( {:tags => {}}, query.to_find_include )
+
+    assert_equal [Post.find(7)], query.execute(:all)
+  end
 end

@@ -7,17 +7,18 @@ require 'extensions'
 module Squirrel
   # When included in AR::Base, it chains the #find method to allow for block execution.
   module Hook
+    def find_with_squirrel *args, &blk
+      args ||= [:all]
+      if blk || (args.last.is_a?(Hash) && args.last.has_key?(:paginate))
+        query = Query.new(self, &blk)
+        query.execute(*args)
+      else
+        find_without_squirrel(*args)
+      end
+    end
+
     def self.included base
-      class << base
-        def find_with_squirrel *args, &blk
-          args ||= [:all]
-          if blk || (args.last.is_a?(Hash) && args.last.has_key?(:paginate))
-            query = Query.new(self, &blk)
-            query.execute(*args)
-          else
-            find_without_squirrel(*args)
-          end
-        end
+      base.class_eval do
         alias_method :find_without_squirrel, :find
         alias_method :find, :find_with_squirrel
       end

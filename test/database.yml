@@ -1,9 +1,8 @@
-sqlite:
-  adapter: sqlite
+sqlite3_file:
+  adapter: sqlite3
   dbfile: squirrel.sqlite.db
 sqlite3:
   adapter: sqlite3
-  #dbfile: squirrel.sqlite3.db
   database: ":memory:"
 postgresql:
   adapter: postgresql
