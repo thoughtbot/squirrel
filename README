@@ -10,6 +10,7 @@ and have its results returned.
 Author::     Jon Yurek (mailto:jyurek@thoughtbot.com)
 Copyright::  Copyright(c) 2008 thoughtbot, inc.
 License::    Distributes under the same terms as Ruby
+Website::    http://www.thoughtbot.com/projects/squirrel
 
 Squirrel is a plugin for ActiveRecord which attempts to make SQL
 querier a much more natural prospect. You can write your queries
