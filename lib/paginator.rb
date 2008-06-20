@@ -34,6 +34,8 @@ module Squirrel
       pages.last
     end
 
+    alias_method :total_pages, :page_count
+
     # Returns the current_page - 1, or nil if this is the first page.
     def previous_page
       current_page > 1 ? (current_page - 1) : nil
