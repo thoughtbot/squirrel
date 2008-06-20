@@ -17,12 +17,37 @@ module Squirrel
       end
     end
 
-    def self.included base
-      return if base.instance_methods.include? 'find_without_squirrel'
-      base.class_eval do
-        alias_method :find_without_squirrel, :find
-        alias_method :find, :find_with_squirrel
+    def scoped_with_squirrel *args, &blk
+      if blk
+        query = Query.new(self, &blk)
+        self.scoped(query.to_find_parameters)
+      else
+        scoped_without_squirrel(*args)
       end
+    end
+
+    def self.included base
+      if ! base.instance_methods.include?('find_without_squirrel') &&
+           base.instance_methods.include?('find')
+        base.class_eval do
+          alias_method :find_without_squirrel, :find
+          alias_method :find, :find_with_squirrel
+        end
+      end
+      if ! base.instance_methods.include?('scoped_without_squirrel') &&
+           base.instance_methods.include?('scoped')
+        base.class_eval do
+          alias_method :scoped_without_squirrel, :scoped
+          alias_method :scoped, :scoped_with_squirrel
+        end
+      end
+    end
+  end
+
+  module NamedScopeHook
+    def scoped *args, &blk
+      args = blk ? [Query.new(self, &blk).to_find_parameters] : args
+      scopes[:scoped].call(self, *args)
     end
   end
 
@@ -64,18 +89,23 @@ module Squirrel
         pagination = opts.delete(:paginate) || {}
         model.send(:with_scope, :find => opts) do
           @conditions.paginate(pagination) unless pagination.empty?
-          find_parameters = { :conditions => to_find_conditions,
-                              :include    => to_find_include,
-                              :order      => to_find_order,
-                              :limit      => to_find_limit,
-                              :offset     => to_find_offset }
-          results = model.find args[0], find_parameters
+          results = model.find args[0], to_find_parameters
           if @conditions.paginate?
-            paginate_result_set results, find_parameters
+            paginate_result_set results, to_find_parameters
           end
         end
         results
       end
+    end
+
+    def to_find_parameters
+      find_parameters = {}
+      find_parameters[:conditions] = to_find_conditions unless to_find_conditions.blank?
+      find_parameters[:include   ] = to_find_include    unless to_find_include.blank?
+      find_parameters[:order     ] = to_find_order      unless to_find_order.blank?
+      find_parameters[:limit     ] = to_find_limit      unless to_find_limit.blank?
+      find_parameters[:offset    ] = to_find_offset     unless to_find_offset.blank?
+      find_parameters
     end
 
     # Delegates the to_find_conditions call to the root ConditionGroup

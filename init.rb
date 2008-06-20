@@ -3,6 +3,12 @@ class << ActiveRecord::Base
   include Squirrel::Hook
 end
 
+if defined?(ActiveRecord::NamedScope::Scope)
+  class ActiveRecord::NamedScope::Scope
+    include Squirrel::NamedScopeHook
+  end
+end
+
 [ ActiveRecord::Associations::HasManyAssociation,
   ActiveRecord::Associations::HasAndBelongsToManyAssociation,
   ActiveRecord::Associations::HasManyThroughAssociation

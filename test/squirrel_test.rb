@@ -272,4 +272,14 @@ class SquirrelTest < Test::Unit::TestCase
 
     assert_equal [Post.find(7)], query.execute(:all)
   end
+
+  def test_scopes_work_like_find_does
+    assert_equal( {:conditions => User.find(:query){ id == 2 }.to_find_conditions},
+                  User.scoped{ id == 2 }.proxy_options)
+  end
+
+  def test_scopes_can_be_nested
+    assert_equal(User.find(1),
+                 User.scoped{ name =~ "Jon%" }.scoped{ id < 3 }.first)
+  end
 end
