@@ -282,4 +282,9 @@ class SquirrelTest < Test::Unit::TestCase
     assert_equal(User.find(1),
                  User.scoped{ name =~ "Jon%" }.scoped{ id < 3 }.first)
   end
+
+  def test_conditions_can_be_rvalues
+    query = User.find(:query){ posts.body == posts.tags.name }
+    assert_equal ["((posts.body = tags.name))"], query.to_find_conditions
+  end
 end

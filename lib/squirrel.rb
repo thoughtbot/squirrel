@@ -488,21 +488,26 @@ module Squirrel
         
         op, arg_format, values = operator, "?", [operand]
         op, arg_format, values = case operator
-        when :<=>       then    [ "BETWEEN", "? AND ?",   [ operand.first, operand.last ] ]
-        when :=~        then
+        when :<=>        then    [ "BETWEEN", "? AND ?",   [ operand.first, operand.last ] ]
+        when :=~         then
           case operand
-          when String   then    [ "LIKE",    arg_format,  values ]
-          when Regexp   then    [ "REGEXP",  arg_format,  values.map(&:source) ]
+          when String    then    [ "LIKE",    arg_format,  values ]
+          when Regexp    then    [ "REGEXP",  arg_format,  values.map(&:source) ]
           end
-        when :==, :===  then
+        when :==, :===   then
           case operand
-          when Array    then    [ "IN",      "(?)",       values ]
-          when Range    then    [ "IN",      "(?)",       values ]
-          when nil      then    [ "IS",      "NULL",      [] ]
-          else                  [ "=",       arg_format,  values ]
+          when Array     then    [ "IN",      "(?)",             values ]
+          when Range     then    [ "IN",      "(?)",             values ]
+          when Condition then    [ "=",       operand.full_name, [] ] 
+          when nil       then    [ "IS",      "NULL",            [] ]
+          else                   [ "=",       arg_format,        values ]
           end
-        when :contains  then    [ "LIKE",    arg_format,  values.map{|v| "%#{v}%" } ]
-        else                    [ op,        arg_format,  values ]
+        when :contains   then    [ "LIKE",    arg_format,        values.map{|v| "%#{v}%" } ]
+        else
+          case operand
+          when Condition then    [ op,        oprand.full_name,  [] ] 
+          else                   [ op,        arg_format,        values ]
+          end
         end		
         sql = "#{full_name} #{op} #{arg_format}"
         sql = "NOT (#{sql})" if @negative
