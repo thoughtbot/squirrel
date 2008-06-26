@@ -322,7 +322,6 @@ module Squirrel
         @condition_blocks.inject({}) do |inc, cb|
           if cb.reflection.nil?
             inc.merge(cb.to_find_include)
-            inc
           else
             inc[cb.reflection] ||= {}
             inc[cb.reflection] = inc[cb.reflection].merge(cb.to_find_include)
