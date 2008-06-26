@@ -321,10 +321,10 @@ module Squirrel
       def to_find_include
         @condition_blocks.inject({}) do |inc, cb|
           if cb.reflection.nil?
-            inc.merge(cb.to_find_include)
+            inc.merge_tree(cb.to_find_include)
           else
             inc[cb.reflection] ||= {}
-            inc[cb.reflection] = inc[cb.reflection].merge(cb.to_find_include)
+            inc[cb.reflection] = inc[cb.reflection].merge_tree(cb.to_find_include)
             inc
           end
         end
