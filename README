@@ -1,3 +1,9 @@
+= DEPRECATED
+
+Thoughtbot is no longer supporting this project, it hasn't be tested or used since at least Rails 2.x.
+
+We recommend exploring Searchlogic (https://github.com/binarylogic/searchlogic) and Arel (https://github.com/rails/arel) for dynamic scopes.
+
 Squirrel
 ======
 
