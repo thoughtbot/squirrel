@@ -4,8 +4,7 @@ Thoughtbot is no longer supporting this project, it hasn't be tested or used sin
 
 We recommend exploring Searchlogic (https://github.com/binarylogic/searchlogic) and Arel (https://github.com/rails/arel) for dynamic scopes.
 
-Squirrel
-======
+= Squirrel
 
 SQL Simplification Plugin for ActiveRecord
 
